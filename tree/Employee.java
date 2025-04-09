@@ -11,6 +11,12 @@ public class Employee implements Comparable<Employee> {
 	private Integer id;
 	private String position;
 	
+	public Employee(String name, int id, String position) {
+		this.name = name;
+		this.id = id;
+		this.position = position;
+	}
+	
  	public String getName() {
 		return name;
 	}
@@ -50,10 +56,7 @@ public class Employee implements Comparable<Employee> {
 		return name + " " + id + " " + position;
 	}
 	
-	//
 	public int compareTo(Employee o) {
-		
 		return (this.id).compareTo(o.id);
-	 
 	}
 }
