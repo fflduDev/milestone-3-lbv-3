@@ -113,8 +113,11 @@ public class DiGraphImpl implements DiGraph{
 
 	@Override
 	public Boolean nodeIsReachable(GraphNode fromNode, GraphNode toNode) {
-		//TODO
-		return null;
+		if (fewestHops(fromNode, toNode) != -1) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
@@ -225,4 +228,5 @@ public class DiGraphImpl implements DiGraph{
 			return distances.get(target);
 		}
 	}
+
 }
