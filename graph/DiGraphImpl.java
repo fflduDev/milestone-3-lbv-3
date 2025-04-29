@@ -1,7 +1,5 @@
 package graph;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.*;
  
 
@@ -100,8 +98,11 @@ public class DiGraphImpl implements DiGraph{
 
 	@Override
 	public List<GraphNode> getAdjacentNodes(GraphNode node) {
-		//TODO
-		return List.of();
+		GraphNode existingNode = getNode(node.getValue());
+		if (existingNode == null) {
+			return new ArrayList<>();
+		}
+		return existingNode.getNeighbors();
 	}
 
 	@Override
@@ -139,14 +140,89 @@ public class DiGraphImpl implements DiGraph{
 	}
 
 	@Override
-	public int fewestHops(GraphNode fromNode, GraphNode toNode) {
-		//TODO
-		return 0;
+	public int fewestHops(GraphNode fromNode, GraphNode toNode) { //took this from hw assignment, tweaked it  
+		GraphNode targetfromNode = getNode(fromNode.getValue());
+		GraphNode targetToNode = getNode(toNode.getValue());
+
+		Queue<GraphNode> queue = new LinkedList<>();
+		Set<GraphNode> visitedNodes = new HashSet<>();
+
+		queue.add(targetfromNode);
+		int hops = 0;
+
+		while(queue.peek() != null){
+			GraphNode thisNode = queue.poll();
+			for (GraphNode thisNeighbor : thisNode.getNeighbors()) {
+				if(visitedNodes.add(thisNeighbor)){
+					queue.add(thisNeighbor);
+					hops++;
+				}
+				if (visitedNodes.contains(targetToNode)){
+					System.out.println("Here is the number of hops: " + hops);
+					return hops;
+				}
+			}
+		}
+		System.out.println("No path found");
+		return -1;
 	}
 
 	@Override
 	public int shortestPath(GraphNode fromNode, GraphNode toNode) {
-		//TODO
-		return 0;
+		GraphNode source = getNode(fromNode.getValue());
+		GraphNode target = getNode(toNode.getValue());
+		
+		if (source == null || target == null) {
+			return -1;
+		}
+		
+		if (source.equals(target)) {
+			return 0;
+		}
+		
+		Map<GraphNode, Integer> distances = new HashMap<>();
+		Set<GraphNode> visited = new HashSet<>();
+		
+		//get distances
+		for (GraphNode node : nodeList) {
+			distances.put(node, Integer.MAX_VALUE); //Integer library instad of using really high value 
+		}
+		distances.put(source, 0);
+		
+		while (visited.size() < nodeList.size()) {
+			GraphNode current = null;
+			int minDistance = Integer.MAX_VALUE;
+			
+			for (GraphNode node : nodeList) {
+				if (!visited.contains(node) && distances.get(node) < minDistance) {
+					minDistance = distances.get(node);
+					current = node;
+				}
+			}
+			
+			if (current == null || minDistance == Integer.MAX_VALUE) {
+				break;
+			}
+			
+			if (current.equals(target)) {
+				return distances.get(target);
+			}
+			
+			visited.add(current);
+			
+			for (GraphNode neighbor : current.getNeighbors()) {
+				if (!visited.contains(neighbor)) {
+					int newDistance = distances.get(current) + current.getDistanceToNeighbor(neighbor);
+					if (newDistance < distances.get(neighbor)) {
+						distances.put(neighbor, newDistance);
+					}
+				}
+			}
+		}
+		if (distances.get(target) == Integer.MAX_VALUE){
+			return -1;
+		} else {
+			return distances.get(target);
+		}
 	}
 }
