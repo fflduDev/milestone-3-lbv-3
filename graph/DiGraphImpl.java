@@ -107,8 +107,17 @@ public class DiGraphImpl implements DiGraph{
 
 	@Override
 	public Boolean nodesAreAdjacent(GraphNode fromNode, GraphNode toNode) {
-		//TODO
-		return null;
+		GraphNode from = getNode(fromNode.getValue());
+		GraphNode to = getNode(toNode.getValue());
+		if (from == null || to == null) {
+			return false;
+		}
+		for (GraphNode neighbor : from.getNeighbors()) {
+			if (neighbor.getValue().equals(to.getValue())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -122,9 +131,38 @@ public class DiGraphImpl implements DiGraph{
 
 	@Override
 	public Boolean hasCycles() {
-		//TODO
-		return null;
+		Set<GraphNode> visited = new HashSet<>();
+		Set<GraphNode> recursionStack = new HashSet<>();
+
+		for (GraphNode node : nodeList) {
+			if (detectCycle(node, visited, recursionStack)) {
+				return true;
+			}
+		}
+		return false;
 	}
+
+	private boolean detectCycle(GraphNode node, Set<GraphNode> visited, Set<GraphNode> recursionStack) {
+		if (recursionStack.contains(node)) {
+			return true;
+		}
+		if (visited.contains(node)) {
+			return false;
+		}
+
+		visited.add(node);
+		recursionStack.add(node);
+
+		for (GraphNode neighbor : node.getNeighbors()) {
+			if (detectCycle(neighbor, visited, recursionStack)) {
+				return true;
+			}
+		}
+
+		recursionStack.remove(node);
+		return false;
+	}
+
 
 	@Override
 	public List<GraphNode> getNodes() {
@@ -161,12 +199,10 @@ public class DiGraphImpl implements DiGraph{
 					hops++;
 				}
 				if (visitedNodes.contains(targetToNode)){
-					System.out.println("Here is the number of hops: " + hops);
 					return hops;
 				}
 			}
 		}
-		System.out.println("No path found");
 		return -1;
 	}
 
@@ -227,6 +263,120 @@ public class DiGraphImpl implements DiGraph{
 		} else {
 			return distances.get(target);
 		}
+
+	}
+
+	@Override
+	public List<GraphNode> getShortestPath(GraphNode fromNode, GraphNode toNode) {
+		GraphNode start = getNode(fromNode.getValue());
+		GraphNode end = getNode(toNode.getValue());
+
+		if (start == null || end == null) {
+			return new ArrayList<>();
+		}
+
+		Map<GraphNode, Integer> distances = new HashMap<>();
+		Map<GraphNode, GraphNode> parentMap = new HashMap<>();
+		Set<GraphNode> visited = new HashSet<>();
+
+		for (GraphNode node : nodeList) {
+			distances.put(node, Integer.MAX_VALUE);
+		}
+		distances.put(start, 0);
+		parentMap.put(start, null);
+
+		while (visited.size() < nodeList.size()) {
+			GraphNode current = null;
+			int minDistance = Integer.MAX_VALUE;
+
+			for (GraphNode node : nodeList) {
+				if (!visited.contains(node) && distances.get(node) < minDistance) {
+					minDistance = distances.get(node);
+					current = node;
+				}
+			}
+
+			if (current == null) {
+				break;
+			}
+
+			visited.add(current);
+
+			for (GraphNode neighbor : current.getNeighbors()) {
+				int edgeWeight = current.getDistanceToNeighbor(neighbor);
+				int newDistance = distances.get(current) + edgeWeight;
+
+				if (newDistance < distances.get(neighbor)) {
+					distances.put(neighbor, newDistance);
+					parentMap.put(neighbor, current);
+				}
+			}
+		}
+
+		if (distances.get(end) == Integer.MAX_VALUE) {
+			return new ArrayList<>();
+		}
+
+		List<GraphNode> path = new ArrayList<>();
+		for (GraphNode node = end; node != null; node = parentMap.get(node)) {
+			path.add(0, node);
+		}
+		return path;
+	}
+
+
+	@Override
+	public List<GraphNode> getFewestHopsPath(GraphNode fromNode, GraphNode toNode) {
+		GraphNode start = getNode(fromNode.getValue());
+		GraphNode end = getNode(toNode.getValue());
+
+		if (start == null || end == null) {
+			return new ArrayList<>();
+		}
+
+		Map<GraphNode, GraphNode> parentMap = new HashMap<>();
+		Set<GraphNode> visited = new HashSet<>();
+		Queue<GraphNode> queue = new LinkedList<>();
+
+		queue.add(start);
+		visited.add(start);
+		parentMap.put(start, null);
+
+		while (!queue.isEmpty()) {
+			GraphNode current = queue.poll();
+
+			if (current.equals(end)) {
+				break;
+			}
+
+			for (GraphNode neighbor : current.getNeighbors()) {
+				if (!visited.contains(neighbor)) {
+					visited.add(neighbor);
+					parentMap.put(neighbor, current);
+					queue.add(neighbor);
+				}
+			}
+		}
+
+		if (!parentMap.containsKey(end)) {
+			return new ArrayList<>();
+		}
+
+		List<GraphNode> path = new ArrayList<>();
+		for (GraphNode node = end; node != null; node = parentMap.get(node)) {
+			path.add(0, node);
+		}
+		return path;
+	}
+
+	@Override
+	public void addEdgeStr(String a, String b, int weight) {
+		GraphNode from = getNode(a);
+		GraphNode to = getNode(b);
+		if (from != null && to != null) {
+			addEdge(from, to, weight);
+		}
 	}
 
 }
+

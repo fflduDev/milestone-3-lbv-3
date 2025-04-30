@@ -56,5 +56,12 @@ public class GraphNode {
 		paths.put(neighbor, weight);
 		return true;
 	}
-	
+
+	public void printNeighbors() {
+		System.out.println("All edges from <" + value + "> are:");
+		for (GraphNode neighbor : paths.keySet()) {
+			System.out.println("- Edge to <" + neighbor.getValue() + ">, with weight " + paths.get(neighbor) + ".");
+		}
+	}
+
 }
